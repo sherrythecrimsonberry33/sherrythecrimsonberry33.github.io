@@ -1,0 +1,242 @@
+h1 {
+    font-style: normal;
+    font-weight: 300;
+    font-family: "Helvetica", sans-serif;
+
+}
+
+h2 {
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 300;
+    font-family: "Helvetica", sans-serif;
+}
+* {
+    box-sizing: border-box;
+}
+  
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: auto;
+    margin: 0;
+}
+  
+  
+main {
+    display: flex;
+    height: 100%;
+}
+  
+nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 20px;
+    justify-content: center;
+    background-color: rgb(199, 196, 196)
+}
+
+.menu a {
+    margin-right: 20px;
+    color: rgb(93, 45, 45);
+    text-decoration: none;
+    font-family: 'Trebuchet MS';
+    
+    
+}
+
+.menu a:hover {
+
+    padding: 20px;
+    background-color: rgba(209, 205, 205, 0.808);
+    justify-content: center;
+    font-size: 110% ;
+    font-weight: bold;
+
+
+}
+
+img {
+    border-radius: 75%;
+    min-width: 180px; /* or any other value that you want */
+    flex-shrink: 0;
+    
+}
+
+
+
+.center {
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+    width: 40%;
+    justify-content: space-evenly;
+}
+
+.center-2 {
+    border: 1px solid;
+    margin: center;
+    width: 70%;
+    align-items: center;
+    justify-content: space-evenly;
+    background-color: #f8f6f4;
+   
+}
+
+.checkbox {
+    display: inline-block;
+    vertical-align: center;
+    text-align: center;
+    column-count: 2;
+    font-size: 110%;
+    font-family:"Geneva", Tahoma, sans-serif;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+article {
+    flex: 2 ;
+    background: #fcfbf9;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+  
+aside {
+    flex: 1;
+    background: #f8f7f5;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+  
+footer {
+
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 4vw;
+    padding: 0;
+    background-color: rgb(196, 190, 190);
+    color: rgb(26, 25, 25);
+    text-align: center;
+    
+    
+}
+
+
+
+.skillbar {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: #cbcaca;
+    width: 80%;
+}
+
+.skillbar-title {
+    position: relative;
+    display: block;
+    padding: 10px;
+    font-weight: lighter;
+    text-transform: uppercase;
+    background: #ffffff;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    font-style: normal;
+    font-weight: 300;
+    font-size: smaller;
+    font-family: "Helvetica", sans-serif;
+}
+
+.skillbar-bar {
+    position: relative;
+    display: block;
+    width: 0%;
+    height: 20px;
+    background: #910404;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.skill-bar-percent {
+    position: absolute;
+    right: 20px;
+    top: 0;
+    font-size: 11px;
+    height: 20px;
+    line-height: 35px;
+    color: #000000;
+    text-align: right;
+}
+
+.interests {
+    display: flex;
+    justify-content: center;
+}
+
+.interests li {
+    list-style: none;
+    margin: 10px;
+    padding: 20px;
+    text-align: center;
+    border-radius: 60%;
+    background-color: #c3bfbf;
+}
+
+a {
+    text-decoration: none;
+  }
+  
+header,
+article,
+nav,
+aside,
+footer {
+padding: 1em;
+}
+
+
+@media (max-width: 767px) {
+    body {
+      flex-direction: column;
+    }
+  
+    main {
+      flex-direction: column;
+    }
+  
+    nav,
+    article,
+    aside {
+      width: 100%;
+    }
+  
+    .center {
+
+    width: 150px;
+    height: 150px;
+      
+    }
+  
+    .center-2 {
+      width: 100%;
+    }
+  
+    .checkbox {
+      column-count: 1;
+    }
+  }
+
+
+  
+  
