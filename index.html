@@ -14,8 +14,8 @@
   // Dark is the default; apply a saved choice before first paint.
   (function () {
     var r = document.documentElement;
-    // Dark by default; the page turns light at Contact, and the switch inverts that.
-    try { if (localStorage.getItem('invert') === '1') r.dataset.theme = 'light'; } catch (e) {}
+    // Dark by default; a theme picked with the switch is remembered.
+    try { if (localStorage.getItem('theme') === 'light') r.dataset.theme = 'light'; } catch (e) {}
     r.classList.add('js');
   })();
 </script>
@@ -275,19 +275,13 @@
     .nav a { font-size: 0.8125rem; padding: 0.5rem 0.375rem; }
     .switch { margin-left: 0.25rem; }
   }
-  /* Theme change: a halftone wash. The new theme prints in through a band of dots that grow
-     from pinpoints until they merge, echoing the dot field in the playground. */
-  :root { --wash: 1250ms cubic-bezier(0.6, 0, 0.25, 1); }
+  /* Theme change: the new theme springs out of the switch as a circle. No fade: the old view
+     is held still underneath and the new one simply takes over when the circle closes. */
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-  ::view-transition-new(root) {
-    -webkit-mask-image: var(--ht), linear-gradient(#000, #000); mask-image: var(--ht), linear-gradient(#000, #000);
-    -webkit-mask-repeat: repeat-x, no-repeat; mask-repeat: repeat-x, no-repeat;
-    -webkit-mask-size: var(--ht-w) var(--ht-h), 100% var(--vh); mask-size: var(--ht-w) var(--ht-h), 100% var(--vh);
-    animation: halftone var(--wash) both;
-  }
-  @keyframes halftone {
-    from { -webkit-mask-position: 0 var(--a0), 0 var(--b0); mask-position: 0 var(--a0), 0 var(--b0); }
-    to { -webkit-mask-position: 0 var(--a1), 0 var(--b1); mask-position: 0 var(--a1), 0 var(--b1); }
+  ::view-transition-new(root) { animation: theme-spring 750ms var(--spring) both; }
+  @keyframes theme-spring {
+    from { clip-path: circle(0 at var(--vt-x) var(--vt-y)); }
+    to { clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y)); }
   }
   .no-transitions *:not(.switch, .switch-thumb, .switch-thumb svg), .no-transitions *:not(.switch-thumb)::before, .no-transitions *::after { transition: none !important; }
 </style>
@@ -575,85 +569,34 @@
   const sw = document.getElementById('theme');
   const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-  /* ---------- Theme: dark while reading, a springy reveal into light at Contact ---------- */
+  /* ---------- Theme: dark by default; the switch reveals the other theme on a spring ---------- */
   const BG = { dark: '#0c0c0c', light: '#f7f6f3' };
-  let invert = false, atEnd = false;
-  try { invert = localStorage.getItem('invert') === '1'; } catch (e) {}
-  const target = () => (invert !== atEnd ? 'light' : 'dark');
   function sync() {
     const t = root.dataset.theme;
     sw.setAttribute('aria-checked', String(t === 'dark'));
     themeMeta.setAttribute('content', BG[t]);
   }
-  // A tile of dots whose radius ramps from nothing to full coverage down (or up) its height.
-  const PITCH = 8, COLS = 15, FULL = PITCH * 0.72;
-  const halftone = {};
-  function halftoneTile(up, rows) {
-    const key = (up ? 'u' : 'd') + rows;
-    if (halftone[key]) return halftone[key];
-    let dots = '';
-    for (let r = 0; r < rows; r++) {
-      const t = (r + 0.5) / rows, k = up ? t : 1 - t;
-      const rad = FULL * Math.pow(k, 0.8);
-      if (rad < 0.15) continue;
-      for (let c = 0; c < COLS; c++) dots += `<circle cx='${(c + 0.5) * PITCH}' cy='${(r + 0.5) * PITCH}' r='${rad.toFixed(2)}'/>`;
-    }
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${COLS * PITCH}' height='${rows * PITCH}'>${dots}</svg>`;
-    return (halftone[key] = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`);
-  }
-
   let transitioning = false;
-  // Light prints in from the bottom; dark prints down from the top.
-  function applyTheme() {
-    const next = target();
+  // The new theme grows out of the switch as a circle on a spring, then simply stays.
+  function setTheme(next) {
     if (root.dataset.theme === next || transitioning) return;
-    const up = next === 'light';
+    try { localStorage.setItem('theme', next); } catch (e) {}
     const swap = () => { root.dataset.theme = next; sync(); };
     root.classList.add('no-transitions');
     const done = () => {
       transitioning = false;
       requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-transitions')));
-      // The reader may have scrolled away while the switch ran; settle on the right theme.
-      if (root.dataset.theme !== target()) applyTheme();
     };
     if (!document.startViewTransition || reduceMotion) { swap(); done(); return; }
     transitioning = true;
-    const h = innerHeight, rows = Math.max(16, Math.round((h * 0.45) / PITCH)), band = rows * PITCH;
-    const set = (k, v) => root.style.setProperty(k, v);
-    set('--vh', h + 'px');
-    set('--ht', halftoneTile(up, rows));
-    set('--ht-w', COLS * PITCH + 'px');
-    set('--ht-h', band + 'px');
-    // a = the dot band, b = the solid area behind it. Both travel one screen plus the band.
-    if (up) { set('--a0', h + 'px'); set('--b0', h + band + 'px'); set('--a1', -band + 'px'); set('--b1', '0px'); }
-    else { set('--a0', -band + 'px'); set('--b0', -band - h + 'px'); set('--a1', h + 'px'); set('--b1', '0px'); }
+    const r = sw.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    root.style.setProperty('--vt-x', x + 'px');
+    root.style.setProperty('--vt-y', y + 'px');
+    root.style.setProperty('--vt-r', Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 'px');
     document.startViewTransition(swap).finished.finally(done);
   }
   sync();
-
-  const contact = document.getElementById('contact');
-  let endQueued = false;
-  function checkEnd() {
-    endQueued = false;
-    const top = contact.getBoundingClientRect().top;
-    const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
-    // Two thresholds, so hovering near the boundary never flickers.
-    const next = atEnd ? top < innerHeight * 0.85 : top < innerHeight * 0.55 || atBottom;
-    if (next === atEnd) return;
-    atEnd = next;
-    applyTheme();
-  }
-  let restTimer = 0;
-  const onRest = () => { if (!endQueued) { endQueued = true; requestAnimationFrame(checkEnd); } };
-  if ('onscrollend' in window) addEventListener('scrollend', onRest);
-  else addEventListener('scroll', () => { clearTimeout(restTimer); restTimer = setTimeout(onRest, 140); }, { passive: true });
-  checkEnd();
-
-  sw.addEventListener('click', () => {
-    invert = !invert;
-    try { localStorage.setItem('invert', invert ? '1' : '0'); } catch (e) {}
-    applyTheme();
-  });
+  sw.addEventListener('click', () => setTheme(root.dataset.theme === 'light' ? 'dark' : 'light'));
 
   /* ---------- Permit lifecycle canvas ---------- */
   const canvas = document.getElementById('canvas');
